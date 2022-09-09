@@ -1,0 +1,66 @@
+﻿version: "3.8"
+
+services:
+  api_mongodb:
+    container_name: api_container
+    image: api_image
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    links:
+      - db
+    ports:
+      - 5202:5202
+      - 5203:80
+      - 5204:443
+      - 5205:8000
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+   
+  prometheus:
+    build:
+      context: ./prometheus
+      dockerfile: Dockerfile
+      args:
+        version: 1
+    image: prometheus-local
+    restart: always
+    ports:
+      - 9090:9090
+    networks:
+      - api_network
+    volumes:
+      - './prometheus/data:/data'
+
+  db:
+    container_name: mongodb_container
+    image: mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  
+  mongo-express:
+    container_name: mongo_express_container
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+    links:
+      - db
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb_container:27017/
+
+volumes:
+  mongo:
+
+networks:
+  api_network:
+    driver: overlay

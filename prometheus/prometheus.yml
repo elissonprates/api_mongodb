@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "api-mongodb"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.18.224.1:5202"]
